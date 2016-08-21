@@ -1,5 +1,6 @@
 import os
 import glob
+import re
 
 import readFromPDF
 
@@ -17,9 +18,30 @@ def lst_files():
         yield filename
 
 def saveResult(filename,keyword,dict_result,page_number):
+    filename = re.findall('\w+\.pdf$',filename)
+    filename = filename[0]
     output_file = '{}{}_keyword_{}.txt'.format(saveDir,filename,keyword)
-    print(output_file)
-    print(page_number)
+    f = open(output_file,'wt', encoding='utf-8')
+    f.write(filename+'\n')
+    f.write('-' * 30 + '\n\n')
+    page_number = set(page_number)
+    page_number = list(page_number)
+    page_number.sort()
+#    print(page_number)
+    for n in page_number:
+        try:
+            #print(n)
+            f.write(str(n)+'\n')
+            temp_result = dict_result[str(n)]
+            #print(temp_result)
+            f.write(str(temp_result) +'\n\n')
+#            print()
+        except KeyError as e:
+            print(e)
+            print()
+#    print(output_file)
+#    print(page_number)
+    f.close()
 
 def main():
     
