@@ -72,6 +72,7 @@ def concordance(string,a_set):
     for word in a_set:
         try:
             pos = lst.index(word)
+#            print(pos)
             prv = pos-8
             flw = pos+8
             conc_lst = lst[prv:pos]+lst[pos:flw]
@@ -79,8 +80,8 @@ def concordance(string,a_set):
             #print(conc_string)
             dict_of_findings[word] = conc_string
         except ValueError as e:
-            print("ValueError: Skipping that word!")
-            print(e)
+           # print("ValueError: Skipping that word!")
+           # print(e)
             print()
             continue
     return dict_of_findings
