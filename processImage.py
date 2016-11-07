@@ -3,6 +3,7 @@
 ######################################
 # A script for cropping image files  #
 ######################################
+# TODO: Fix output filename
 
 import os
 import subprocess
@@ -13,7 +14,6 @@ from PyPDF2 import PdfFileReader, PdfFileMerger
 
 # Logging configuration
 logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
-
 
 def imageCrop(filename,boxTuple):
     myImage = Image.open(filename)
@@ -39,11 +39,12 @@ def ocr(filename):
     spArguments=["ocrmypdf","-l", "deu", filename, outputFilename]
     subprocess.call(spArguments)
 
-def mergePDF(path):
+def mergePDF(path,output_fname):
     # Copied from "Automate the boring stuff"
     logging.debug('Started mergePDF in {}'.format(path))
     folderName = os.path.basename(path)
-    outputFile = "StaticOutput.pdf"
+    outputFile = output_fname.strip(".pdf")
+    outputFile = outputFile + "_OCR.pdf"
     pdfFiles = []
     for filename in os.listdir(path):
         if (filename.endswith('.pdf') and filename.startswith('ocr_')):
@@ -64,32 +65,51 @@ def cleanUp(path):
 
 if __name__ == "__main__":
 
-    srcDir ='/home/sven/.temp/imageCropping/Spinner2012_Wie_Fachwissen_das_literarische_Verstaendnis_stoert/'
+    srcDir = input("Please enter the directory where the files are stored: ")
     os.chdir(srcDir)
     
     # Crop images in a directory and store them as JPEG and PDF
-    for img in os.listdir(srcDir):
+    answer = input("Do you want to crop the images? [Y|N]: ")
+    if answer in ["y","Y","yes","Yes"]:
+        top_left = input("Please enter the top-left coordinates, separated by ',': ")
+        top_left = top_left.split(',')
+        top_left[0] = int(top_left[0])
+        top_left[1] = int(top_left[1])
+        logging.debug("Top-left coordinates: {}".format(top_left))
+        top_right = input("Please enter the top-right coordinates, separated by ',': ")
+        top_right = top_right.split(',')
+        top_right[0] = int(top_right[0])
+        top_right[1] = int(top_right[1])
+        logging.debug("Top-right coordinates: {}".format(top_right))
+        boxTuple = tuple(top_left + top_right)
+        logging.debug("BoxTuple: {}".format(boxTuple))
+        take_a_break = input()
+        for img in os.listdir(srcDir):
 
-        # Check for non-image files
-        if not (img.endswith('.png') or img.endswith('.jpg') ):
-            continue
-        # Check for files already cropped
-        elif img.startswith('crp_'):
-            continue
+            # Check for non-image files
+            if not (img.endswith('.png') or img.endswith('.jpg') ):
+                continue
+            # Check for files already cropped
+            elif img.startswith('crp_'):
+                continue
 
-        filename = img
-        boxTuple = (0,0,1758,2463)
-        imageCrop(filename,boxTuple)
-        print("\n")
+            filename = img
+            imageCrop(filename,boxTuple)
+            print("\n")
+    elif answer in ["n","N","no","No"]:
+        print("Skipping cropping process.")
+    else:
+        pass 
 
     for pdf in os.listdir(srcDir):
         if not (pdf.endswith('.pdf')):
             continue
         logging.debug("Filename is {}".format(pdf))        
-#        filename = pdf
-#        ocr(filename)
+        filename = pdf
+        ocr(filename)
     
     # Merge PDFs
-#    mergePDF(srcDir)
-    # Clean up temporary files
-    #cleanUp(srcDir)
+    mergePDF(srcDir,pdf)
+   # Clean up temporary files
+    cleanUp(srcDir)
+    print("Operation on {} done.".format(filename))
